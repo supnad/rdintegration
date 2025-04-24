@@ -1,3 +1,3 @@
 export default async function handler(req, res) {
-  res.status(200).json({ message: 'API funcionando!' });
+  res.status(200).json({ message: 'API Funcionando em PROD!' });
 }
