@@ -1,11 +1,16 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { rateLimit } from '../lib/rate-limit';
 
 dotenv.config();
 
 const RD_API_BASE = 'https://crm.rdstation.com/api/v1/contacts';
 
 export default async function handler(req, res) {
+  if (!rateLimit(req, 5)) {
+    return res.status(429).json({ message: 'Muitas requisições. Tente novamente em breve.' });
+  }
+
   const { method } = req;
 
   if (method !== 'POST') {
@@ -27,8 +32,8 @@ export default async function handler(req, res) {
         'Accept': 'application/json'
       }
     });
-
-    if (getResponse.data && getResponse.data.length > 0) {
+    
+    if (getResponse.data?.contacts?.length > 0) {
       return res.status(200).json({ message: 'Lead já existe. Nenhuma ação feita.' });
     }
 
@@ -60,8 +65,7 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('Erro na integração:', error.response?.data || error.message);
     return res.status(500).json({
-      message: 'Erro ao processar a requisição',
-      error: error.response?.data || error.message
+      message: 'Erro interno ao processar a requisição.'
     });
   }
 }
