@@ -1,0 +1,9 @@
+{
+    "rewrites": [
+      {
+        "source": "/api/:match*",
+        "destination": "https://rd-api.onrender.com/api/:match*"
+      }
+    ]
+  }
+  
