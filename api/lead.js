@@ -1,8 +1,21 @@
 import axios from 'axios';
-import 'dotenv/config.js'; // <- carrega o .env no modo ESM
+import 'dotenv/config.js';
 import { rateLimit } from '../lib/rate-limit.js';
 
 const RD_API_BASE = 'https://crm.rdstation.com/api/v1/contacts';
+
+function sanitizePhone(phone) {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 13) return digits;
+  if (digits.length === 12) return digits.slice(0, 4) + '9' + digits.slice(4);
+  return null;
+}
+
+function sanitizeName(name) {
+  let clean = name.replace(/:[^:\s]+:/g, ''); // Remove :emoji:
+  clean = clean.replace(/[^a-zA-Z\s]/g, '').trim(); // Remove caracteres especiais e números
+  return clean.length >= 3 ? clean : null;
+}
 
 export default async function handler(req, res) {
   if (!rateLimit(req, 5)) {
@@ -15,19 +28,20 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Método não permitido' });
   }
 
-  const { name, phone } = req.body;
+  let { name, phone } = req.body;
+
+  name = sanitizeName(name);
+  phone = sanitizePhone(phone);
 
   if (!name || !phone) {
-    return res.status(400).json({ message: 'Campos obrigatórios: name e phone' });
+    return res.status(400).json({ message: 'Nome ou telefone inválido após formatação' });
   }
 
   try {
     const getUrl = `${RD_API_BASE}?phone=${encodeURIComponent(phone)}&token=${process.env.RD_TOKEN}`;
 
     const getResponse = await axios.get(getUrl, {
-      headers: {
-        Accept: 'application/json'
-      }
+      headers: { Accept: 'application/json' }
     });
 
     if (getResponse.data?.contacts?.length > 0) {
