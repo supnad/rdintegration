@@ -1,7 +1,10 @@
 import axios from 'axios';
 import 'dotenv/config.js';
 import { rateLimit } from '../lib/rate-limit.js';
+import fs from 'fs/promises';
+import path from 'path';
 
+const LOGS_PATH = path.resolve('./data/logs.json');
 const RD_API_BASE = 'https://crm.rdstation.com/api/v1/contacts';
 
 function sanitizePhone(phone) {
@@ -69,6 +72,23 @@ export default async function handler(req, res) {
         Accept: 'application/json'
       }
     });
+
+    // Salvar dados no JSON local
+    try {
+      const logsRaw = await fs.readFile(LOGS_PATH, 'utf-8');
+      const logs = JSON.parse(logsRaw);
+      const lastId = logs.length > 0 ? logs[logs.length - 1].id || 0 : 0;
+      
+      logs.push({
+        id: lastId + 1,
+        name,
+        phone,
+        date: new Date().toISOString()
+      });
+      await fs.writeFile(LOGS_PATH, JSON.stringify(logs, null, 2));
+    } catch (writeErr) {
+      console.error('Erro ao salvar no logs.json:', writeErr);
+    }
 
     return res.status(201).json({ message: 'Lead criado com sucesso.', data: postResponse.data });
 
