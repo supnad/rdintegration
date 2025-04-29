@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Logs</title>
+  <link rel="icon" href="/favicon.svg">
   <style>
     body {
       font-family: sans-serif;
@@ -68,6 +69,7 @@
   <table class="zebra-table" id="logs-table">
     <thead>
       <tr>
+        <th>ID</th>
         <th>Nome</th>
         <th>Telefone</th>
         <th>Data da Importação</th>
@@ -94,6 +96,7 @@
       data.forEach(log => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
+          <td>${log.id}</td>
           <td>${log.name}</td>
           <td>${log.phone}</td>
           <td>${new Date(log.date).toLocaleString('pt-BR')}</td>

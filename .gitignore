@@ -1,3 +1,16 @@
-.vercel
+# Node.js
+node_modules/
 .env
-node_modules
+package-lock.json
+
+# Vercel
+.vercel/
+
+# Logs locais
+data/logs.json
+data/*.log
+
+# Outras estruturas opcionais
+*.log
+.DS_Store
+*.swp
