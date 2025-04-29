@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Logs</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    h1 {
+      margin-bottom: 1rem;
+    }
+
+    .controls {
+      margin-bottom: 1rem;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      margin: 0 0.25rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .active {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .zebra-table {
+      width: 100%;
+      max-width: 800px;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+    }
+
+    .zebra-table th, .zebra-table td {
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+
+    .zebra-table tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    .zebra-table tr:nth-child(odd) {
+      background-color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>Logs</h1>
+
+  <div class="controls">
+    <button class="page-size" data-size="20">20 por página</button>
+    <button class="page-size" data-size="50">50 por página</button>
+    <button class="page-size" data-size="100">100 por página</button>
+  </div>
+
+  <table class="zebra-table" id="logs-table">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Telefone</th>
+        <th>Data da Importação</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="controls">
+    <button id="prev-page">Anterior</button>
+    <button id="next-page">Próxima</button>
+  </div>
+
+  <script>
+    let page = 1;
+    let limit = 20;
+
+    async function fetchLogs() {
+      const res = await fetch(`/api/logs?page=${page}&limit=${limit}`);
+      const data = await res.json();
+      const tbody = document.querySelector('#logs-table tbody');
+      tbody.innerHTML = '';
+
+      data.forEach(log => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${log.name}</td>
+          <td>${log.phone}</td>
+          <td>${new Date(log.date).toLocaleString('pt-BR')}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.querySelectorAll('.page-size').forEach(button => {
+      button.addEventListener('click', () => {
+        limit = parseInt(button.dataset.size);
+        page = 1;
+        fetchLogs();
+        document.querySelectorAll('.page-size').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+      });
+    });
+
+    document.getElementById('prev-page').addEventListener('click', () => {
+      if (page > 1) {
+        page--;
+        fetchLogs();
+      }
+    });
+
+    document.getElementById('next-page').addEventListener('click', () => {
+      page++;
+      fetchLogs();
+    });
+
+    // inicializa
+    fetchLogs();
+    document.querySelector('.page-size[data-size="20"]').classList.add('active');
+  </script>
+</body>
+</html>
