@@ -16,8 +16,9 @@ function sanitizePhone(phone) {
 }
 
 function sanitizeName(name) {
+  if (typeof name !== 'string') return null;
   let clean = name.replace(/:[^:\s]+:/g, ''); // Remove :emoji:
-  clean = clean.replace(/[^a-zA-Z\s]/g, '').trim(); // Remove caracteres especiais e números
+  clean = clean.replace(/[^\p{L}\s]/gu, '').trim(); // Remove números e símbolos, mas mantém acentos e letras Unicode
   return clean.length >= 3 ? clean : null;
 }
 
