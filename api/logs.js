@@ -1,8 +1,8 @@
-import fs from 'fs/promises';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
+import 'dotenv/config.js';
 
-const LOGS_PATH = path.resolve('./data/logs.json');
-const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -10,31 +10,31 @@ export default async function handler(req, res) {
   }
 
   const { page = 1, limit = 20 } = req.query;
-  const now = Date.now();
+  const pageNumber = parseInt(page);
+  const pageSize = parseInt(limit);
+
+  const now = new Date();
+  const cutoffDate = new Date(now.getTime() - THIRTY_DAYS_MS).toISOString();
+
+  const from = (pageNumber - 1) * pageSize;
+  const to = from + pageSize - 1;
 
   try {
-    const raw = await fs.readFile(LOGS_PATH, 'utf-8');
-    const allLogs = JSON.parse(raw);
+    const { data, error } = await supabase
+      .from('logs')
+      .select('*')
+      .gte('date', cutoffDate)
+      .order('id', { ascending: true })
+      .range(from, to);
 
-    // Filtrar logs até 30 dias
-    const recentLogs = allLogs.filter(log =>
-      now - new Date(log.date).getTime() <= THIRTY_DAYS
-    );
-
-    // Reescreve o JSON com logs válidos
-    if (recentLogs.length !== allLogs.length) {
-      await fs.writeFile(LOGS_PATH, JSON.stringify(recentLogs, null, 2));
+    if (error) {
+      console.error('Erro ao buscar logs do Supabase:', error.message);
+      return res.status(500).json({ message: 'Erro ao buscar logs.' });
     }
 
-    // Paginação
-    const p = parseInt(page);
-    const l = parseInt(limit);
-    const start = (p - 1) * l;
-    const paginated = recentLogs.slice(start, start + l);
-
-    return res.status(200).json(paginated);
+    return res.status(200).json(data);
   } catch (err) {
-    console.error('Erro ao ler logs:', err);
-    return res.status(500).json({ message: 'Erro ao ler os logs.' });
+    console.error('Erro inesperado:', err);
+    return res.status(500).json({ message: 'Erro inesperado.' });
   }
 }
