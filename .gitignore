@@ -6,11 +6,10 @@ package-lock.json
 # Vercel
 .vercel/
 
-# Logs locais
-data/logs.json
-data/*.log
-
-# Outras estruturas opcionais
+# Arquivos não utilizados
+data/
 *.log
 .DS_Store
 *.swp
+.env*.local
+test-*
