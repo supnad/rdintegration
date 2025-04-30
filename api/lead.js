@@ -60,11 +60,11 @@ export default async function handler(req, res) {
         phones: [{ phone }],
         legal_bases: [
           {
-            category: 'data_processing',
-            status: 'granted',
-            type: 'consent'
+            category: 'communications',
+            type: 'consent',
+            status: 'granted'
           }
-        ]
+        ]        
       }
     };
 
