@@ -22,8 +22,6 @@ Este projeto é um middleware desenvolvido para integrar a plataforma de atendim
 ## 🔒 Regras de Negócio
 
 - Apenas leads com número de telefone válido (com DDD) são processados.
-- Cada tipo de evento ou fluxo no Huggy é tratado de forma distinta, com nome de evento, campanha e tags específicas.
-- Gatilhos como "Consultoria", "Atendimento", "Conversão", "Teste gratuito", entre outros, geram eventos diferentes no RD.
 
 ## 📂 Estrutura do Projeto
 
