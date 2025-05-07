@@ -4,8 +4,6 @@ import { rateLimit } from '../lib/rate-limit.js';
 import { createClient } from '@supabase/supabase-js';
 
 const RD_API_BASE = 'https://crm.rdstation.com/api/v1/contacts';
-
-// Inicializa o cliente Supabase
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 function sanitizePhone(phone) {
@@ -17,12 +15,22 @@ function sanitizePhone(phone) {
 
 function sanitizeName(name) {
   if (typeof name !== 'string') return null;
-  let clean = name.replace(/:[^:\s]+:/g, ''); // Remove :emoji:
-  clean = clean.replace(/[^\p{L}\s]/gu, '').trim(); // Remove números e símbolos, mas mantém acentos e letras Unicode
+  let clean = name.replace(/:[^:\s]+:/g, '');
+  clean = clean.replace(/[^\p{L}\s]/gu, '').trim();
   return clean.length >= 3 ? clean : null;
 }
 
 export default async function handler(req, res) {
+  // ✅ Adiciona cabeçalhos CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // ✅ Responde à requisição OPTIONS (preflight)
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (!rateLimit(req, 5)) {
     return res.status(429).json({ message: 'Muitas requisições. Tente novamente em breve.' });
   }
@@ -64,7 +72,7 @@ export default async function handler(req, res) {
             type: 'consent',
             status: 'granted'
           }
-        ]        
+        ]
       }
     };
 
@@ -75,7 +83,6 @@ export default async function handler(req, res) {
       }
     });
 
-    // Salvar no Supabase
     const { error: supabaseError } = await supabase
       .from('logs')
       .insert([{ name, phone }]);
